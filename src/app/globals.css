@@ -1,8 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --card: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.06);
+  --muted: #86868b;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --accent-light: rgba(0, 113, 227, 0.08);
+  --danger: #ff3b30;
+  --input-bg: #ffffff;
+  --input-border: rgba(0, 0, 0, 0.12);
+  --input-focus: rgba(0, 113, 227, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 @theme inline {
@@ -14,13 +27,176 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #000000;
+    --foreground: #f5f5f7;
+    --card: #1c1c1e;
+    --card-border: rgba(255, 255, 255, 0.08);
+    --muted: #86868b;
+    --accent: #2997ff;
+    --accent-hover: #40a3ff;
+    --accent-light: rgba(41, 151, 255, 0.1);
+    --input-bg: #1c1c1e;
+    --input-border: rgba(255, 255, 255, 0.12);
+    --input-focus: rgba(41, 151, 255, 0.5);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apple-style smooth transitions */
+* {
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* Frosted glass card */
+.glass-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Apple-style input */
+.apple-input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 14px;
+  font-size: 17px;
+  padding: 14px 18px;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  color: var(--foreground);
+  width: 100%;
+}
+
+.apple-input::placeholder {
+  color: var(--muted);
+}
+
+.apple-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--input-focus);
+}
+
+/* Apple-style primary button */
+.apple-btn {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 500;
+  padding: 14px 28px;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: -0.01em;
+}
+
+.apple-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: scale(1.02);
+}
+
+.apple-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.apple-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Apple-style pill button (for download) */
+.apple-btn-lg {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 16px;
+  font-size: 19px;
+  font-weight: 600;
+  padding: 18px 32px;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: -0.01em;
+  width: 100%;
+}
+
+.apple-btn-lg:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: scale(1.01);
+  box-shadow: 0 4px 20px rgba(0, 113, 227, 0.3);
+}
+
+.apple-btn-lg:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.apple-btn-lg:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Quality option card */
+.quality-card {
+  background: var(--card);
+  border: 2px solid var(--card-border);
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: left;
+}
+
+.quality-card:hover {
+  border-color: rgba(0, 113, 227, 0.3);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.quality-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Spinner animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+/* Fade in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
