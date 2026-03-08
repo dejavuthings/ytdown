@@ -12,7 +12,8 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
-RUN mkdir -p tmp && npm run build
+RUN echo '/// <reference types="next" />\n/// <reference types="next/image-types/global" />' > next-env.d.ts && \
+    mkdir -p tmp && npm run build
 
 ENV PORT=3000
 EXPOSE 3000
