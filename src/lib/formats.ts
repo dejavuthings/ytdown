@@ -16,7 +16,7 @@ export const FORMAT_OPTIONS: FormatOption[] = [
     value: "highest",
     description: "원본 최고 해상도 (MP4)",
     isAudio: false,
-    platforms: ["youtube", "instagram"],
+    platforms: ["youtube", "instagram", "tiktok"],
   },
   {
     label: "중간 화질",
@@ -37,7 +37,7 @@ export const FORMAT_OPTIONS: FormatOption[] = [
     value: "mp3",
     description: "오디오만 (MP3, 320kbps)",
     isAudio: true,
-    platforms: ["youtube", "instagram"],
+    platforms: ["youtube", "instagram", "tiktok"],
   },
 ];
 
@@ -46,6 +46,29 @@ export function getFormatOptionsForPlatform(platform: Platform): FormatOption[] 
 }
 
 export function getYtdlpArgs(quality: Quality, platform: Platform = "youtube"): string[] {
+  if (platform === "tiktok") {
+    switch (quality) {
+      case "highest":
+        return [
+          "-f",
+          "bestvideo+bestaudio/best",
+          "-S", "vcodec:h264",
+          "--merge-output-format", "mp4",
+          "--postprocessor-args", "ffmpeg:-c:v libx264 -c:a aac -preset fast -crf 23",
+        ];
+      case "mp3":
+        return ["-x", "--audio-format", "mp3", "--audio-quality", "0"];
+      default:
+        return [
+          "-f",
+          "bestvideo+bestaudio/best",
+          "-S", "vcodec:h264",
+          "--merge-output-format", "mp4",
+          "--postprocessor-args", "ffmpeg:-c:v libx264 -c:a aac -preset fast -crf 23",
+        ];
+    }
+  }
+
   if (platform === "instagram") {
     switch (quality) {
       case "highest":

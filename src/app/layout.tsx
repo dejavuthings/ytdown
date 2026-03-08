@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Media Downloader",
-  description: "YouTube, Instagram 영상 및 MP3 다운로더",
+  description: "YouTube, Instagram, TikTok 영상 및 MP3 다운로더",
 };
 
 export default function RootLayout({

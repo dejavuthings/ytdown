@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
 
   if (!url || !isValidUrl(url)) {
     return NextResponse.json(
-      { error: "유효한 YouTube 또는 Instagram URL을 입력해주세요." },
+      { error: "유효한 YouTube, Instagram 또는 TikTok URL을 입력해주세요." },
       { status: 400 }
     );
   }

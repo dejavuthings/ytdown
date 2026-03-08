@@ -83,7 +83,7 @@ export default function Home() {
             className="text-[15px] sm:text-[17px] mt-1.5 sm:mt-2"
             style={{ color: "var(--muted)" }}
           >
-            YouTube, Instagram 영상을 간편하게 다운로드하세요.
+            YouTube, Instagram, TikTok 영상을 간편하게 다운로드하세요.
           </p>
         </div>
 

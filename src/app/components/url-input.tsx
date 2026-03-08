@@ -16,7 +16,7 @@ export default function UrlInput({ url, onChange, onSubmit, loading }: UrlInputP
           value={url}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !loading && onSubmit()}
-          placeholder="YouTube 또는 Instagram URL을 붙여넣으세요"
+          placeholder="YouTube, Instagram, TikTok URL을 붙여넣으세요"
           className="apple-input"
           disabled={loading}
         />

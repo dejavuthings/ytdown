@@ -14,12 +14,15 @@ interface VideoInfoProps {
 }
 
 export default function VideoInfo({ info }: VideoInfoProps) {
-  const platformLabel = info.platform === "instagram" ? "Instagram" : "YouTube";
-  const platformColor = info.platform === "instagram"
-    ? "linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)"
-    : "#ff0000";
+  const platformConfig: Record<Platform, { label: string; color: string }> = {
+    youtube: { label: "YouTube", color: "#ff0000" },
+    instagram: { label: "Instagram", color: "linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" },
+    tiktok: { label: "TikTok", color: "#000000" },
+  };
+  const { label: platformLabel, color: platformColor } = platformConfig[info.platform];
 
-  const thumbnailSrc = info.platform === "instagram" && info.thumbnail
+  const needsProxy = info.platform === "instagram" || info.platform === "tiktok";
+  const thumbnailSrc = needsProxy && info.thumbnail
     ? `/api/thumbnail?url=${encodeURIComponent(info.thumbnail)}`
     : info.thumbnail;
 
