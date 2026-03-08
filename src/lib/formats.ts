@@ -52,8 +52,10 @@ export function getYtdlpArgs(quality: Quality, platform: Platform = "youtube"): 
         return [
           "-f",
           "bestvideo+bestaudio/best",
+          "-S", "vcodec:h264",
           "--merge-output-format",
           "mp4",
+          "--recode-video", "mp4",
         ];
       case "mp3":
         return ["-x", "--audio-format", "mp3", "--audio-quality", "0"];
@@ -61,8 +63,10 @@ export function getYtdlpArgs(quality: Quality, platform: Platform = "youtube"): 
         return [
           "-f",
           "bestvideo+bestaudio/best",
+          "-S", "vcodec:h264",
           "--merge-output-format",
           "mp4",
+          "--recode-video", "mp4",
         ];
     }
   }

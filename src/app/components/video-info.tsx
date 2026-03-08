@@ -19,11 +19,15 @@ export default function VideoInfo({ info }: VideoInfoProps) {
     ? "linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)"
     : "#ff0000";
 
+  const thumbnailSrc = info.platform === "instagram" && info.thumbnail
+    ? `/api/thumbnail?url=${encodeURIComponent(info.thumbnail)}`
+    : info.thumbnail;
+
   return (
     <div className="glass-card p-4 sm:p-5 flex flex-col sm:flex-row gap-3.5 sm:gap-5 animate-fade-in">
       <div className="relative flex-shrink-0">
         <img
-          src={info.thumbnail}
+          src={thumbnailSrc}
           alt={info.title}
           className="w-full sm:w-52 h-auto sm:h-[118px] aspect-video sm:aspect-auto object-cover rounded-[12px]"
         />
