@@ -39,7 +39,7 @@ const icons: Record<Quality, React.ReactNode> = {
 
 export default function QualitySelector({ selected, onChange }: QualitySelectorProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
       {FORMAT_OPTIONS.map((opt) => (
         <button
           key={opt.value}
@@ -47,13 +47,13 @@ export default function QualitySelector({ selected, onChange }: QualitySelectorP
           className={`quality-card ${selected === opt.value ? "selected" : ""}`}
         >
           <div
-            className="mb-2"
+            className="mb-1.5 sm:mb-2"
             style={{ color: selected === opt.value ? "var(--accent)" : "var(--muted)" }}
           >
             {icons[opt.value]}
           </div>
           <div
-            className="text-[15px] font-semibold"
+            className="text-[14px] sm:text-[15px] font-semibold"
             style={{
               color: selected === opt.value ? "var(--accent)" : "var(--foreground)",
               letterSpacing: "-0.01em",
@@ -61,7 +61,7 @@ export default function QualitySelector({ selected, onChange }: QualitySelectorP
           >
             {opt.label}
           </div>
-          <div className="text-[12px] mt-0.5" style={{ color: "var(--muted)" }}>
+          <div className="text-[11px] sm:text-[12px] mt-0.5" style={{ color: "var(--muted)" }}>
             {opt.description}
           </div>
         </button>

@@ -61,23 +61,37 @@ body {
 .glass-card {
   background: var(--card);
   border: 1px solid var(--card-border);
-  border-radius: 20px;
+  border-radius: 16px;
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+}
+
+@media (min-width: 640px) {
+  .glass-card {
+    border-radius: 20px;
+  }
 }
 
 /* Apple-style input */
 .apple-input {
   background: var(--input-bg);
   border: 1px solid var(--input-border);
-  border-radius: 14px;
-  font-size: 17px;
-  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 16px;
+  padding: 12px 16px;
   outline: none;
   transition: border-color 0.3s, box-shadow 0.3s;
   color: var(--foreground);
   width: 100%;
+}
+
+@media (min-width: 640px) {
+  .apple-input {
+    border-radius: 14px;
+    font-size: 17px;
+    padding: 14px 18px;
+  }
 }
 
 .apple-input::placeholder {
@@ -94,13 +108,21 @@ body {
   background: var(--accent);
   color: #ffffff;
   border: none;
-  border-radius: 14px;
-  font-size: 17px;
+  border-radius: 12px;
+  font-size: 16px;
   font-weight: 500;
-  padding: 14px 28px;
+  padding: 12px 20px;
   cursor: pointer;
   transition: all 0.3s;
   letter-spacing: -0.01em;
+}
+
+@media (min-width: 640px) {
+  .apple-btn {
+    border-radius: 14px;
+    font-size: 17px;
+    padding: 14px 28px;
+  }
 }
 
 .apple-btn:hover:not(:disabled) {
@@ -122,14 +144,22 @@ body {
   background: var(--accent);
   color: #ffffff;
   border: none;
-  border-radius: 16px;
-  font-size: 19px;
+  border-radius: 14px;
+  font-size: 17px;
   font-weight: 600;
-  padding: 18px 32px;
+  padding: 16px 24px;
   cursor: pointer;
   transition: all 0.3s;
   letter-spacing: -0.01em;
   width: 100%;
+}
+
+@media (min-width: 640px) {
+  .apple-btn-lg {
+    border-radius: 16px;
+    font-size: 19px;
+    padding: 18px 32px;
+  }
 }
 
 .apple-btn-lg:hover:not(:disabled) {
@@ -151,11 +181,18 @@ body {
 .quality-card {
   background: var(--card);
   border: 2px solid var(--card-border);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 14px;
+  padding: 14px;
   cursor: pointer;
   transition: all 0.3s;
   text-align: left;
+}
+
+@media (min-width: 640px) {
+  .quality-card {
+    border-radius: 16px;
+    padding: 16px;
+  }
 }
 
 .quality-card:hover {

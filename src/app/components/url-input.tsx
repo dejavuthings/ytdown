@@ -9,7 +9,7 @@ interface UrlInputProps {
 
 export default function UrlInput({ url, onChange, onSubmit, loading }: UrlInputProps) {
   return (
-    <div className="flex gap-3 items-center">
+    <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
       <div className="flex-1 relative">
         <input
           type="text"
@@ -24,7 +24,7 @@ export default function UrlInput({ url, onChange, onSubmit, loading }: UrlInputP
       <button
         onClick={onSubmit}
         disabled={loading || !url.trim()}
-        className="apple-btn flex items-center gap-2 whitespace-nowrap"
+        className="apple-btn flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
       >
         {loading ? (
           <>

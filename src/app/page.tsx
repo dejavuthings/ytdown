@@ -62,20 +62,20 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen flex items-start justify-center px-5 pt-24 pb-12"
+      className="min-h-screen min-h-[100dvh] flex items-start justify-center px-4 sm:px-5 pt-12 sm:pt-24 pb-8 sm:pb-12"
       style={{ background: "var(--background)" }}
     >
       <div className="w-full max-w-[680px]">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-6 sm:mb-10">
           <h1
-            className="text-[40px] font-bold tracking-tight"
+            className="text-[28px] sm:text-[40px] font-bold tracking-tight"
             style={{ color: "var(--foreground)", letterSpacing: "-0.03em" }}
           >
             YouTube Downloader
           </h1>
           <p
-            className="text-[17px] mt-2"
+            className="text-[15px] sm:text-[17px] mt-1.5 sm:mt-2"
             style={{ color: "var(--muted)" }}
           >
             영상 또는 MP3를 간편하게 다운로드하세요.
@@ -83,7 +83,7 @@ export default function Home() {
         </div>
 
         {/* Search */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <UrlInput
             url={url}
             onChange={setUrl}
@@ -95,7 +95,7 @@ export default function Home() {
         {/* Error */}
         {error && (
           <div
-            className="mb-6 p-4 rounded-2xl text-[15px] font-medium animate-fade-in"
+            className="mb-5 sm:mb-6 p-3.5 sm:p-4 rounded-2xl text-[14px] sm:text-[15px] font-medium animate-fade-in"
             style={{
               background: "rgba(255, 59, 48, 0.08)",
               color: "var(--danger)",
@@ -108,7 +108,7 @@ export default function Home() {
 
         {/* Results */}
         {info && (
-          <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-5">
             <VideoInfo info={info} />
             <QualitySelector selected={quality} onChange={setQuality} />
             <DownloadButton
