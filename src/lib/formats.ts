@@ -45,7 +45,28 @@ export function getFormatOptionsForPlatform(platform: Platform): FormatOption[] 
   return FORMAT_OPTIONS.filter((opt) => opt.platforms.includes(platform));
 }
 
-export function getYtdlpArgs(quality: Quality): string[] {
+export function getYtdlpArgs(quality: Quality, platform: Platform = "youtube"): string[] {
+  if (platform === "instagram") {
+    switch (quality) {
+      case "highest":
+        return [
+          "-f",
+          "bestvideo+bestaudio/best",
+          "--merge-output-format",
+          "mp4",
+        ];
+      case "mp3":
+        return ["-x", "--audio-format", "mp3", "--audio-quality", "0"];
+      default:
+        return [
+          "-f",
+          "bestvideo+bestaudio/best",
+          "--merge-output-format",
+          "mp4",
+        ];
+    }
+  }
+
   switch (quality) {
     case "highest":
       return [

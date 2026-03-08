@@ -5,6 +5,7 @@ import { unlink, mkdir } from "fs/promises";
 import { join } from "path";
 import { randomUUID } from "crypto";
 import { Quality, getYtdlpArgs } from "./formats";
+import { Platform, detectPlatform } from "./validate";
 
 const execFileAsync = promisify(execFile);
 
@@ -43,9 +44,10 @@ export interface VideoInfo {
 }
 
 function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
+  const total = Math.floor(seconds);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
   if (h > 0) {
     return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }
@@ -83,7 +85,8 @@ export async function downloadToFile(
     const filename = `${randomUUID()}.${ext}`;
     const filepath = join(TMP_DIR, filename);
 
-    const args = [...getYtdlpArgs(quality), "-o", filepath, url];
+    const platform: Platform = detectPlatform(url) || "youtube";
+    const args = [...getYtdlpArgs(quality, platform), "-o", filepath, url];
 
     await execFileAsync("yt-dlp", args, {
       timeout: 600000,
