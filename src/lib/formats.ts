@@ -53,9 +53,8 @@ export function getYtdlpArgs(quality: Quality, platform: Platform = "youtube"): 
           "-f",
           "bestvideo+bestaudio/best",
           "-S", "vcodec:h264",
-          "--merge-output-format",
-          "mp4",
-          "--recode-video", "mp4",
+          "--merge-output-format", "mp4",
+          "--postprocessor-args", "ffmpeg:-c:v libx264 -c:a aac -preset fast -crf 23",
         ];
       case "mp3":
         return ["-x", "--audio-format", "mp3", "--audio-quality", "0"];
@@ -64,9 +63,8 @@ export function getYtdlpArgs(quality: Quality, platform: Platform = "youtube"): 
           "-f",
           "bestvideo+bestaudio/best",
           "-S", "vcodec:h264",
-          "--merge-output-format",
-          "mp4",
-          "--recode-video", "mp4",
+          "--merge-output-format", "mp4",
+          "--postprocessor-args", "ffmpeg:-c:v libx264 -c:a aac -preset fast -crf 23",
         ];
     }
   }
