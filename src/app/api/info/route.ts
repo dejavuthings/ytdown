@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidYouTubeUrl } from "@/lib/validate";
+import { isValidUrl, detectPlatform } from "@/lib/validate";
 import { getVideoInfo } from "@/lib/ytdlp";
 
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
 
-  if (!url || !isValidYouTubeUrl(url)) {
+  if (!url || !isValidUrl(url)) {
     return NextResponse.json(
-      { error: "유효한 YouTube URL을 입력해주세요." },
+      { error: "유효한 YouTube 또는 Instagram URL을 입력해주세요." },
       { status: 400 }
     );
   }
 
   try {
+    const platform = detectPlatform(url);
     const info = await getVideoInfo(url);
-    return NextResponse.json(info);
+    return NextResponse.json({ ...info, platform });
   } catch (err) {
     console.error("Failed to get video info:", err);
     return NextResponse.json(

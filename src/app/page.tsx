@@ -5,7 +5,8 @@ import UrlInput from "./components/url-input";
 import VideoInfo from "./components/video-info";
 import QualitySelector from "./components/quality-selector";
 import DownloadButton from "./components/download-button";
-import { Quality } from "@/lib/formats";
+import { Quality, getFormatOptionsForPlatform } from "@/lib/formats";
+import { Platform } from "@/lib/validate";
 
 interface VideoInfoData {
   title: string;
@@ -13,6 +14,7 @@ interface VideoInfoData {
   duration: number;
   durationFormatted: string;
   uploader: string;
+  platform: Platform;
 }
 
 export default function Home() {
@@ -39,6 +41,7 @@ export default function Home() {
       }
 
       setInfo(data);
+      setQuality("highest");
     } catch {
       setError("서버 연결에 실패했습니다.");
     } finally {
@@ -60,6 +63,8 @@ export default function Home() {
     setTimeout(() => setDownloading(false), 3000);
   };
 
+  const formatOptions = info ? getFormatOptionsForPlatform(info.platform) : [];
+
   return (
     <div
       className="min-h-screen min-h-[100dvh] flex items-start justify-center px-4 sm:px-5 pt-12 sm:pt-24 pb-8 sm:pb-12"
@@ -72,13 +77,13 @@ export default function Home() {
             className="text-[28px] sm:text-[40px] font-bold tracking-tight"
             style={{ color: "var(--foreground)", letterSpacing: "-0.03em" }}
           >
-            YouTube Downloader
+            Media Downloader
           </h1>
           <p
             className="text-[15px] sm:text-[17px] mt-1.5 sm:mt-2"
             style={{ color: "var(--muted)" }}
           >
-            영상 또는 MP3를 간편하게 다운로드하세요.
+            YouTube, Instagram 영상을 간편하게 다운로드하세요.
           </p>
         </div>
 
@@ -110,7 +115,11 @@ export default function Home() {
         {info && (
           <div className="space-y-4 sm:space-y-5">
             <VideoInfo info={info} />
-            <QualitySelector selected={quality} onChange={setQuality} />
+            <QualitySelector
+              selected={quality}
+              onChange={setQuality}
+              options={formatOptions}
+            />
             <DownloadButton
               url={url}
               quality={quality}

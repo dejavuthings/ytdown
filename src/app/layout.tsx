@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "YouTube Downloader",
-  description: "YouTube 영상 및 MP3 다운로더",
+  title: "Media Downloader",
+  description: "YouTube, Instagram 영상 및 MP3 다운로더",
 };
 
 export default function RootLayout({

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { createReadStream, statSync } from "fs";
-import { isValidYouTubeUrl, sanitizeFilename } from "@/lib/validate";
+import { isValidUrl, sanitizeFilename } from "@/lib/validate";
 import { getVideoInfo, downloadToFile } from "@/lib/ytdlp";
 import { Quality } from "@/lib/formats";
 
@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
   const quality = request.nextUrl.searchParams.get("quality") as Quality;
 
-  if (!url || !isValidYouTubeUrl(url)) {
-    return new Response("유효한 YouTube URL을 입력해주세요.", { status: 400 });
+  if (!url || !isValidUrl(url)) {
+    return new Response("유효한 URL을 입력해주세요.", { status: 400 });
   }
 
   if (!quality || !VALID_QUALITIES.includes(quality)) {

@@ -1,10 +1,11 @@
 "use client";
 
-import { FORMAT_OPTIONS, Quality } from "@/lib/formats";
+import { FormatOption, Quality } from "@/lib/formats";
 
 interface QualitySelectorProps {
   selected: Quality;
   onChange: (quality: Quality) => void;
+  options: FormatOption[];
 }
 
 const icons: Record<Quality, React.ReactNode> = {
@@ -37,10 +38,12 @@ const icons: Record<Quality, React.ReactNode> = {
   ),
 };
 
-export default function QualitySelector({ selected, onChange }: QualitySelectorProps) {
+export default function QualitySelector({ selected, onChange, options }: QualitySelectorProps) {
+  const cols = options.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4";
+
   return (
-    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-      {FORMAT_OPTIONS.map((opt) => (
+    <div className={`grid gap-2.5 sm:gap-3 ${cols} animate-fade-in`} style={{ animationDelay: "0.1s" }}>
+      {options.map((opt) => (
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
