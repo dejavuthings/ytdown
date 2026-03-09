@@ -18,4 +18,4 @@ RUN echo '/// <reference types="next" />\n/// <reference types="next/image-types
 ENV PORT=3000
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD yt-dlp -U && npm start
