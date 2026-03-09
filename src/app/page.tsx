@@ -51,7 +51,9 @@ export default function Home() {
 
   const handleDownload = () => {
     setDownloading(true);
-    const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&quality=${quality}`;
+    setError("");
+    const title = info?.title ? encodeURIComponent(info.title) : "";
+    const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&quality=${quality}&title=${title}`;
 
     const a = document.createElement("a");
     a.href = downloadUrl;
@@ -60,7 +62,7 @@ export default function Home() {
     a.click();
     document.body.removeChild(a);
 
-    setTimeout(() => setDownloading(false), 3000);
+    setTimeout(() => setDownloading(false), 5000);
   };
 
   const formatOptions = info ? getFormatOptionsForPlatform(info.platform) : [];

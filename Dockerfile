@@ -1,3 +1,12 @@
+FROM node:20-slim AS builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN echo '/// <reference types="next" />\n/// <reference types="next/image-types/global" />' > next-env.d.ts && \
+    mkdir -p tmp && npm run build
+
 FROM node:20-slim
 
 RUN apt-get update && \
@@ -8,14 +17,20 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.ts ./
 
-COPY . .
-RUN echo '/// <reference types="next" />\n/// <reference types="next/image-types/global" />' > next-env.d.ts && \
-    mkdir -p tmp && npm run build
+RUN mkdir -p tmp && chown -R node:node /app
+
+USER node
 
 ENV PORT=3000
 EXPOSE 3000
 
-CMD yt-dlp -U && npm start
+HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+CMD yt-dlp -U || true && npm start
