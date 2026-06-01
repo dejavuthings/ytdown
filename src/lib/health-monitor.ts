@@ -2,12 +2,19 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { Platform } from "./validate";
 import { autoUpdateYtdlp } from "./self-healing";
+import { getCommonArgs } from "./ytdlp-config";
 
 const execFileAsync = promisify(execFile);
 
-// Public, long-lived test URLs
-const TEST_URLS: Partial<Record<Platform, string>> = {
-  youtube: "https://www.youtube.com/watch?v=jNQXAC9IVRw", // "Me at the zoo"
+// Public, long-lived test URLs. We try several per platform and consider the
+// channel healthy if ANY succeeds — individual videos can get bot-challenged
+// independently, so a single probe video gives false negatives.
+const TEST_URLS: Partial<Record<Platform, string[]>> = {
+  youtube: [
+    "https://www.youtube.com/watch?v=jNQXAC9IVRw", // "Me at the zoo"
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ", // Rick Astley
+    "https://www.youtube.com/watch?v=aqz-KE-bpKQ", // Big Buck Bunny
+  ],
 };
 
 export interface ChannelStatus {
@@ -25,59 +32,75 @@ const channelStatus: Record<Platform, ChannelStatus> = {
 
 let ytdlpVersion = "unknown";
 
+async function probe(platform: Platform, url: string): Promise<void> {
+  await execFileAsync("yt-dlp", [
+    "--dump-json",
+    "--no-download",
+    "--no-warnings",
+    ...getCommonArgs(platform),
+    "--no-playlist",
+    url,
+  ], { timeout: 30000, maxBuffer: 5 * 1024 * 1024 });
+}
+
+// Try each candidate URL; healthy if ANY succeeds. Returns the last error
+// message when all fail.
+async function probeAny(platform: Platform, urls: string[]): Promise<string | null> {
+  let lastErr = "";
+  for (const url of urls) {
+    try {
+      await probe(platform, url);
+      return null;
+    } catch (err) {
+      lastErr = err instanceof Error ? err.message : String(err);
+    }
+  }
+  return lastErr;
+}
+
 async function checkChannel(platform: Platform): Promise<boolean> {
-  const testUrl = TEST_URLS[platform];
-  if (!testUrl) {
+  const testUrls = TEST_URLS[platform];
+  if (!testUrls || testUrls.length === 0) {
     // No test URL available — assume healthy
     return true;
   }
 
-  try {
-    await execFileAsync("yt-dlp", [
-      "--dump-json",
-      "--no-download",
-      "--no-warnings",
-      "--no-playlist",
-      testUrl,
-    ], { timeout: 30000, maxBuffer: 5 * 1024 * 1024 });
-
+  const err = await probeAny(platform, testUrls);
+  if (err === null) {
     channelStatus[platform].healthy = true;
     channelStatus[platform].consecutiveFailures = 0;
     channelStatus[platform].lastError = "";
     channelStatus[platform].lastChecked = new Date();
     return true;
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    channelStatus[platform].healthy = false;
-    channelStatus[platform].consecutiveFailures++;
-    channelStatus[platform].lastError = msg.slice(0, 200);
-    channelStatus[platform].lastChecked = new Date();
-
-    console.error(`[health] ${platform} check failed (${channelStatus[platform].consecutiveFailures}x):`, msg.slice(0, 200));
-
-    // Auto-heal: update yt-dlp after 3 consecutive failures
-    if (channelStatus[platform].consecutiveFailures >= 3) {
-      console.log(`[health] ${platform} failed 3x, triggering yt-dlp update`);
-      const updated = await autoUpdateYtdlp();
-      if (updated) {
-        // Re-check after update
-        try {
-          await execFileAsync("yt-dlp", [
-            "--dump-json", "--no-download", "--no-warnings", "--no-playlist", testUrl,
-          ], { timeout: 30000, maxBuffer: 5 * 1024 * 1024 });
-          channelStatus[platform].healthy = true;
-          channelStatus[platform].consecutiveFailures = 0;
-          channelStatus[platform].lastError = "";
-          console.log(`[health] ${platform} recovered after yt-dlp update`);
-          return true;
-        } catch {
-          console.error(`[health] ${platform} still failing after update`);
-        }
-      }
-    }
-
-    return false;
   }
+
+  channelStatus[platform].healthy = false;
+  channelStatus[platform].consecutiveFailures++;
+  channelStatus[platform].lastError = err.slice(0, 200);
+  channelStatus[platform].lastChecked = new Date();
+
+  console.error(`[health] ${platform} check failed (${channelStatus[platform].consecutiveFailures}x):`, err.slice(0, 200));
+
+  // Auto-heal: update yt-dlp after 3 consecutive failures. Only worthwhile for
+  // extractor breakages — bot blocks aren't fixed by updating, so skip then.
+  const isBotBlock = /Sign in to confirm|not a bot|Use --cookies/i.test(err);
+  if (channelStatus[platform].consecutiveFailures >= 3 && !isBotBlock) {
+    console.log(`[health] ${platform} failed 3x, triggering yt-dlp update`);
+    const updated = await autoUpdateYtdlp();
+    if (updated) {
+      const retryErr = await probeAny(platform, testUrls);
+      if (retryErr === null) {
+        channelStatus[platform].healthy = true;
+        channelStatus[platform].consecutiveFailures = 0;
+        channelStatus[platform].lastError = "";
+        console.log(`[health] ${platform} recovered after yt-dlp update`);
+        return true;
+      }
+      console.error(`[health] ${platform} still failing after update`);
+    }
+  }
+
+  return false;
 }
 
 async function fetchYtdlpVersion(): Promise<string> {

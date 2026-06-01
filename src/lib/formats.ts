@@ -92,25 +92,29 @@ export function getYtdlpArgs(quality: Quality, platform: Platform = "youtube"): 
     }
   }
 
+  // Format chains prefer mp4/m4a (no re-mux needed), then fall back to ANY
+  // bestvideo+bestaudio (remuxed to mp4) so we keep high resolution. The bare
+  // `best` combined stream is the LAST resort — without the extra fallbacks,
+  // YouTube's SABR experiment silently drops "highest" to 360p (format 18).
   switch (quality) {
     case "highest":
       return [
         "-f",
-        "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+        "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best[ext=mp4]/best",
         "--merge-output-format",
         "mp4",
       ];
     case "medium":
       return [
         "-f",
-        "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]",
+        "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720][ext=mp4]/best[height<=720]/best",
         "--merge-output-format",
         "mp4",
       ];
     case "low":
       return [
         "-f",
-        "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360]",
+        "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360][ext=mp4]/best[height<=360]/best",
         "--merge-output-format",
         "mp4",
       ];

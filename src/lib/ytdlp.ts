@@ -5,6 +5,7 @@ import { join } from "path";
 import { randomUUID } from "crypto";
 import { Quality, getYtdlpArgs } from "./formats";
 import { Platform, detectPlatform } from "./validate";
+import { getCommonArgs } from "./ytdlp-config";
 
 const execFileAsync = promisify(execFile);
 
@@ -149,10 +150,12 @@ function formatDuration(seconds: number): string {
 const SAFE_FLAGS = ["--no-exec", "--no-config", "--no-playlist"];
 
 export async function getVideoInfo(url: string): Promise<VideoInfo> {
+  const platform = detectPlatform(url);
   const { stdout } = await execFileAsync("yt-dlp", [
     "--dump-json",
     "--no-download",
     "--no-warnings",
+    ...getCommonArgs(platform),
     ...SAFE_FLAGS,
     url,
   ], { timeout: 45000, maxBuffer: 5 * 1024 * 1024 });
@@ -203,6 +206,7 @@ export async function downloadToFile(
     const platform: Platform = detectPlatform(url) || "youtube";
     const args = [
       ...getYtdlpArgs(quality, platform),
+      ...getCommonArgs(platform),
       ...SAFE_FLAGS,
       "-o", filepath,
       url,

@@ -9,6 +9,7 @@ const execFileAsync = promisify(execFile);
 
 export type FailureType =
   | "outdated"
+  | "bot_blocked"
   | "format_unavailable"
   | "geo_restricted"
   | "auth_required"
@@ -16,12 +17,18 @@ export type FailureType =
   | "unknown";
 
 const ERROR_PATTERNS: Partial<Record<FailureType, RegExp[]>> = {
+  // YouTube bot detection on datacenter IPs. NOT fixable by updating yt-dlp —
+  // needs cookies / a different IP, so it gets its own type and message.
+  bot_blocked: [
+    /Sign in to confirm/i,
+    /confirm you.?re not a bot/i,
+    /This request was detected as a bot/i,
+    /Use --cookies/i,
+  ],
   outdated: [
     /unable to extract/i,
     /HTTP Error 403/i,
-    /Sign in to confirm/i,
     /got error code 403/i,
-    /This request was detected as a bot/i,
   ],
   format_unavailable: [
     /requested format not available/i,
@@ -51,6 +58,8 @@ const ERROR_PATTERNS: Partial<Record<FailureType, RegExp[]>> = {
 
 export const USER_MESSAGES: Record<FailureType, string> = {
   outdated: "플랫폼 변경으로 일시적 오류가 발생했습니다. 자동 수정을 시도합니다...",
+  bot_blocked:
+    "YouTube가 자동 다운로드를 일시적으로 차단했습니다. 잠시 후 다시 시도하거나, 다른 영상으로 시도해주세요.",
   format_unavailable: "요청한 화질을 사용할 수 없습니다. 다른 화질로 시도해주세요.",
   geo_restricted: "이 영상은 지역 제한이 있어 다운로드할 수 없습니다.",
   auth_required: "비공개 영상이거나 로그인이 필요한 영상입니다.",
@@ -121,6 +130,20 @@ export async function executeWithHealing<T>(
     // Non-recoverable errors
     if (failureType === "geo_restricted" || failureType === "auth_required") {
       return { success: false, error: USER_MESSAGES[failureType], failureType };
+    }
+
+    // Bot detection: intermittent on datacenter IPs. yt-dlp -U does NOT help.
+    // Retry once after a short backoff (a fresh request often gets a different,
+    // un-challenged player session). If cookies are configured the first
+    // attempt already used them, so just retry rather than escalate.
+    if (failureType === "bot_blocked") {
+      await sleep(1500);
+      try {
+        const data = await operation();
+        return { success: true, data, healed: true };
+      } catch {
+        return { success: false, error: USER_MESSAGES.bot_blocked, failureType };
+      }
     }
 
     // 2nd attempt: retry for transient errors
