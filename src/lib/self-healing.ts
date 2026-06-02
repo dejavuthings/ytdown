@@ -132,18 +132,27 @@ export async function executeWithHealing<T>(
       return { success: false, error: USER_MESSAGES[failureType], failureType };
     }
 
-    // Bot detection: intermittent on datacenter IPs. yt-dlp -U does NOT help.
-    // Retry once after a short backoff (a fresh request often gets a different,
-    // un-challenged player session). If cookies are configured the first
-    // attempt already used them, so just retry rather than escalate.
+    // Bot detection on datacenter IPs. yt-dlp -U does NOT help.
+    // 1) short backoff + plain retry (handles intermittent challenges)
+    // 2) retry with the bot-bypass player_client set (operationWithFallback),
+    //    which negotiates differently and often slips past the challenge.
     if (failureType === "bot_blocked") {
       await sleep(1500);
       try {
         const data = await operation();
         return { success: true, data, healed: true };
       } catch {
-        return { success: false, error: USER_MESSAGES.bot_blocked, failureType };
+        // fall through to bypass-client fallback
       }
+      if (operationWithFallback) {
+        try {
+          const data = await operationWithFallback();
+          return { success: true, data, healed: true };
+        } catch (fbErr) {
+          console.error("[self-healing] bot-bypass fallback failed:", extractErrorMessage(fbErr));
+        }
+      }
+      return { success: false, error: USER_MESSAGES.bot_blocked, failureType };
     }
 
     // 2nd attempt: retry for transient errors

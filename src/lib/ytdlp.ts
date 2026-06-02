@@ -149,13 +149,14 @@ function formatDuration(seconds: number): string {
 
 const SAFE_FLAGS = ["--no-exec", "--no-config", "--no-playlist"];
 
-export async function getVideoInfo(url: string): Promise<VideoInfo> {
+export async function getVideoInfo(url: string, extraArgs: string[] = []): Promise<VideoInfo> {
   const platform = detectPlatform(url);
   const { stdout } = await execFileAsync("yt-dlp", [
     "--dump-json",
     "--no-download",
     "--no-warnings",
     ...getCommonArgs(platform),
+    ...extraArgs,
     ...SAFE_FLAGS,
     url,
   ], { timeout: 45000, maxBuffer: 5 * 1024 * 1024 });
@@ -174,7 +175,8 @@ export async function getVideoInfo(url: string): Promise<VideoInfo> {
 
 export async function downloadToFile(
   url: string,
-  quality: Quality
+  quality: Quality,
+  extraArgs: string[] = []
 ): Promise<{ filepath: string; cleanup: () => Promise<void> }> {
   await acquireSemaphore();
 
@@ -207,6 +209,7 @@ export async function downloadToFile(
     const args = [
       ...getYtdlpArgs(quality, platform),
       ...getCommonArgs(platform),
+      ...extraArgs,
       ...SAFE_FLAGS,
       "-o", filepath,
       url,

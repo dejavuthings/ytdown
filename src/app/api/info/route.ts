@@ -4,6 +4,7 @@ import { getVideoInfo } from "@/lib/ytdlp";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { executeWithHealing } from "@/lib/self-healing";
 import { recordFailure, recordSuccess } from "@/lib/health-monitor";
+import { getBotBypassArgs } from "@/lib/ytdlp-config";
 
 export async function GET(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
@@ -28,6 +29,7 @@ export async function GET(request: NextRequest) {
 
   const result = await executeWithHealing(
     () => getVideoInfo(url),
+    () => getVideoInfo(url, getBotBypassArgs(platform)),
   );
 
   if (result.success && result.data) {

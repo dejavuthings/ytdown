@@ -86,3 +86,18 @@ export function getCommonArgs(platform: Platform | null): string[] {
 
   return args;
 }
+
+// Player clients used ONLY as a bot-block fallback. These negotiate differently
+// from the default web client and often slip past "Sign in to confirm you're
+// not a bot" on datacenter IPs. Tunable via YTDLP_YT_BYPASS_CLIENTS.
+const DEFAULT_BYPASS_CLIENTS = "tv,web_safari,mweb,android_vr";
+
+/**
+ * Extra args for a bot-block retry: force the bypass player_client set.
+ * Returns [] for non-YouTube platforms (nothing to bypass there).
+ */
+export function getBotBypassArgs(platform: Platform | null): string[] {
+  if (platform !== "youtube" && platform !== null) return [];
+  const clients = process.env.YTDLP_YT_BYPASS_CLIENTS?.trim() || DEFAULT_BYPASS_CLIENTS;
+  return ["--extractor-args", `youtube:player_client=${clients}`];
+}

@@ -7,6 +7,7 @@ import { Quality } from "@/lib/formats";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { executeWithHealing } from "@/lib/self-healing";
 import { recordFailure, recordSuccess } from "@/lib/health-monitor";
+import { getBotBypassArgs } from "@/lib/ytdlp-config";
 
 const VALID_QUALITIES: Quality[] = ["highest", "medium", "low", "mp3"];
 
@@ -45,9 +46,10 @@ export async function GET(request: NextRequest) {
     const ext = quality === "mp3" ? "mp3" : "mp4";
     const contentType = quality === "mp3" ? "audio/mpeg" : "video/mp4";
 
-    // Download with self-healing
+    // Download with self-healing (bot-block → retry with bypass clients)
     const result = await executeWithHealing(
       () => downloadToFile(url, quality),
+      () => downloadToFile(url, quality, getBotBypassArgs(platform)),
     );
 
     if (!result.success || !result.data) {
