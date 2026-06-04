@@ -74,10 +74,17 @@ export function getCommonArgs(platform: Platform | null): string[] {
     args.push("--cookies", cookies);
   }
 
-  // Player-client override is opt-in (YouTube only). Default = yt-dlp's own
-  // selection, which negotiates the best formats; forcing a list can degrade
-  // quality, so only apply when an operator explicitly sets it.
   if (platform === "youtube" || platform === null) {
+    // Point the bgutil POT plugin at the provider over IPv6. The provider binds
+    // [::]:4416 and the container is IPv6-only on loopback (IPv4 127.0.0.1 is
+    // refused), but the plugin defaults to 127.0.0.1 — so without this the
+    // plugin can't fetch tokens. Override via YTDLP_POT_BASE_URL.
+    const potBaseUrl = process.env.YTDLP_POT_BASE_URL?.trim() || "http://[::1]:4416";
+    args.push("--extractor-args", `youtubepot-bgutilhttp:base_url=${potBaseUrl}`);
+
+    // Player-client override is opt-in. Default = yt-dlp's own selection, which
+    // negotiates the best formats; forcing a list can degrade quality, so only
+    // apply when an operator explicitly sets it.
     const clients = process.env.YTDLP_YT_CLIENTS?.trim();
     if (clients) {
       args.push("--extractor-args", `youtube:player_client=${clients}`);
