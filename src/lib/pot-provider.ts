@@ -1,4 +1,15 @@
 import http from "http";
+import { readFileSync } from "fs";
+
+const POT_LOG = "/tmp/pot-provider.log";
+
+function readPotLog(): string[] {
+  try {
+    return readFileSync(POT_LOG, "utf8").trim().split("\n").slice(-15);
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Client for the bgutil POT (Proof-of-Origin Token) provider.
@@ -63,6 +74,7 @@ export interface PotStatus {
   detail: string;
   version?: string;
   attempts?: Record<string, string>;
+  log?: string[];
 }
 
 const DIAG_HOSTS = ["::1", "127.0.0.1", "localhost", "0.0.0.0"];
@@ -92,7 +104,7 @@ export async function getPotStatus(): Promise<PotStatus> {
       attempts[host] = err instanceof Error ? err.message : String(err);
     }
   }
-  return { up, detail: up ? okDetail : "all hosts failed", version, attempts };
+  return { up, detail: up ? okDetail : "all hosts failed", version, attempts, log: readPotLog() };
 }
 
 /** Tell the provider to drop cached tokens so the next request regenerates. */

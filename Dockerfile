@@ -60,4 +60,4 @@ HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
 # Supervise the POT provider in a shell loop: launch it and auto-restart on
 # crash, independent of the Node app (Next bundles instrumentation separately,
 # so app-side supervision isn't reliable). Then refresh yt-dlp and start the app.
-CMD sh -c "(while true; do echo '[pot] starting provider'; node-bgutil /opt/bgutil-provider/build/main.js; echo '[pot] provider exited, restarting in 3s'; sleep 3; done &) && sleep 2 && (yt-dlp -U || true) && node server.js"
+CMD sh -c "(while true; do echo \"[pot] starting provider $(date -u)\" >> /tmp/pot-provider.log; node-bgutil /opt/bgutil-provider/build/main.js >> /tmp/pot-provider.log 2>&1; echo \"[pot] provider exited ($?), restarting in 3s\" >> /tmp/pot-provider.log; sleep 3; done &) && sleep 2 && (yt-dlp -U || true) && node server.js"
