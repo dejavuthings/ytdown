@@ -15,16 +15,21 @@ import http from "http";
  */
 
 const PORT = Number(process.env.POT_PROVIDER_PORT || 4416);
-const HOST = process.env.POT_PROVIDER_HOST || "127.0.0.1";
+// The provider binds to "::" (IPv6) on Railway, so IPv4 127.0.0.1 is refused.
+// Try IPv6 loopback first, then IPv4. Override with POT_PROVIDER_HOST.
+const HOSTS = process.env.POT_PROVIDER_HOST
+  ? [process.env.POT_PROVIDER_HOST]
+  : ["::1", "127.0.0.1"];
 
-function httpRequest(
+function requestOnce(
+  host: string,
   method: string,
   path: string,
-  timeoutMs = 2000
+  timeoutMs: number
 ): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
     const req = http.request(
-      { host: HOST, port: PORT, path, method, timeout: timeoutMs },
+      { host, port: PORT, path, method, timeout: timeoutMs },
       (res) => {
         let body = "";
         res.on("data", (c) => (body += c));
@@ -35,6 +40,22 @@ function httpRequest(
     req.on("timeout", () => req.destroy(new Error("timeout")));
     req.end();
   });
+}
+
+async function httpRequest(
+  method: string,
+  path: string,
+  timeoutMs = 2000
+): Promise<{ status: number; body: string }> {
+  let lastErr: unknown;
+  for (const host of HOSTS) {
+    try {
+      return await requestOnce(host, method, path, timeoutMs);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
 export interface PotStatus {
