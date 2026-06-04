@@ -62,23 +62,37 @@ export interface PotStatus {
   up: boolean;
   detail: string;
   version?: string;
+  attempts?: Record<string, string>;
 }
+
+const DIAG_HOSTS = ["::1", "127.0.0.1", "localhost", "0.0.0.0"];
 
 /** Ping the provider's /ping endpoint to confirm it's up (and read version). */
 export async function getPotStatus(): Promise<PotStatus> {
-  try {
-    const { status, body } = await httpRequest("GET", "/ping");
-    if (status < 200 || status >= 300) return { up: false, detail: `HTTP ${status}` };
-    let version: string | undefined;
+  // Diagnostic: probe every loopback variant so we can see which one Node can
+  // actually reach (yt-dlp uses 127.0.0.1 and works, but Node has been refused).
+  const attempts: Record<string, string> = {};
+  let up = false;
+  let version: string | undefined;
+  let okDetail = "";
+  for (const host of DIAG_HOSTS) {
     try {
-      version = (JSON.parse(body) as { version?: string }).version;
-    } catch {
-      /* body may not be JSON */
+      const { status, body } = await requestOnce(host, "GET", "/ping", 2000);
+      attempts[host] = `HTTP ${status}`;
+      if (status >= 200 && status < 300 && !up) {
+        up = true;
+        okDetail = `${host} HTTP ${status}`;
+        try {
+          version = (JSON.parse(body) as { version?: string }).version;
+        } catch {
+          /* body may not be JSON */
+        }
+      }
+    } catch (err) {
+      attempts[host] = err instanceof Error ? err.message : String(err);
     }
-    return { up: true, detail: `HTTP ${status}`, version };
-  } catch (err) {
-    return { up: false, detail: err instanceof Error ? err.message : String(err) };
   }
+  return { up, detail: up ? okDetail : "all hosts failed", version, attempts };
 }
 
 /** Tell the provider to drop cached tokens so the next request regenerates. */
