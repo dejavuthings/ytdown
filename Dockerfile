@@ -18,7 +18,7 @@ FROM node:20-slim
 ARG BGUTIL_VERSION=1.3.1
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates python3 ffmpeg curl unzip && \
+    apt-get install -y --no-install-recommends ca-certificates python3 ffmpeg curl unzip libatomic1 && \
     curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
     chmod a+rwx /usr/local/bin/yt-dlp && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
