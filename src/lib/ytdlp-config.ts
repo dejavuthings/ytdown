@@ -69,6 +69,15 @@ export function hasCookies(): boolean {
 export function getCommonArgs(platform: Platform | null): string[] {
   const args: string[] = [];
 
+  // Route through a proxy (e.g. a residential proxy) so requests don't come
+  // from the flagged datacenter IP. The single most reliable cookie-free way
+  // to beat YouTube's bot block. Set YTDLP_PROXY to http(s)://[user:pass@]host:port
+  // or socks5://...
+  const proxy = process.env.YTDLP_PROXY?.trim();
+  if (proxy) {
+    args.push("--proxy", proxy);
+  }
+
   const cookies = resolveCookieFile();
   if (cookies) {
     args.push("--cookies", cookies);
