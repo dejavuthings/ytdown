@@ -33,6 +33,31 @@ export function extractVideoId(url: string): string | null {
   return match ? match[1] : null;
 }
 
+/**
+ * Clean up a pasted URL before handing it to yt-dlp.
+ * - trims whitespace and stray wrapping quotes/angle brackets
+ * - YouTube → canonical `https://www.youtube.com/watch?v=<id>` (drops &list=,
+ *   &t=, tracking params, shorts/youtu.be variants all collapse to this)
+ * - Instagram/TikTok → strip the query string (tracking params like ?igsh=, ?_t=)
+ * Returns the original (trimmed) string if it doesn't match a known platform.
+ */
+export function normalizeUrl(input: string): string {
+  let url = (input || "").trim().replace(/^['"<\s]+|['">\s]+$/g, "").trim();
+
+  const ytId = extractVideoId(url);
+  if (ytId) {
+    return `https://www.youtube.com/watch?v=${ytId}`;
+  }
+
+  if (INSTAGRAM_REGEX.test(url) || TIKTOK_REGEX.test(url)) {
+    // Drop query string + fragment; the path identifies the content.
+    url = url.split("#")[0].split("?")[0];
+    return url;
+  }
+
+  return url;
+}
+
 export function sanitizeFilename(name: string): string {
   return name
     .replace(/[<>:"/\\|?*\x00-\x1f]/g, "")

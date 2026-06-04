@@ -48,6 +48,8 @@ USER node
 
 # HOME must be set so yt-dlp finds the plugin dir under ~/.config.
 ENV HOME=/home/node
+# Expose the installed bgutil plugin version at runtime (update-check uses it).
+ENV BGUTIL_VERSION=${BGUTIL_VERSION}
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 EXPOSE 3000
@@ -55,7 +57,7 @@ EXPOSE 3000
 HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
-# Start the POT provider in the background (with its matching node), give it a
-# moment to bind, refresh yt-dlp, then run the app. If the provider dies, the
-# app still runs — yt-dlp just falls back to the (bot-blockable) default path.
-CMD sh -c "(node-bgutil /opt/bgutil-provider/build/main.js &) && sleep 2 && (yt-dlp -U || true) && node server.js"
+# The app itself supervises the POT provider (spawns + auto-restarts it via
+# src/instrumentation.ts), so we no longer launch it here. Just refresh yt-dlp
+# then start the app.
+CMD sh -c "(yt-dlp -U || true) && node server.js"

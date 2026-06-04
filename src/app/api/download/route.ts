@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { createReadStream } from "fs";
 import { stat } from "fs/promises";
-import { isValidUrl, sanitizeFilename, detectPlatform } from "@/lib/validate";
+import { isValidUrl, sanitizeFilename, detectPlatform, normalizeUrl } from "@/lib/validate";
 import { getVideoInfo, downloadToFile } from "@/lib/ytdlp";
 import { Quality } from "@/lib/formats";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -18,11 +18,11 @@ export async function GET(request: NextRequest) {
     return new Response("요청이 너무 많습니다. 잠시 후 다시 시도해주세요.", { status: 429 });
   }
 
-  const url = request.nextUrl.searchParams.get("url");
+  const rawUrl = request.nextUrl.searchParams.get("url");
   const quality = request.nextUrl.searchParams.get("quality") as Quality;
   const title = request.nextUrl.searchParams.get("title");
 
-  if (!url || !isValidUrl(url)) {
+  if (!rawUrl || !isValidUrl(rawUrl)) {
     return new Response("유효한 URL을 입력해주세요.", { status: 400 });
   }
 
@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
     return new Response("유효한 화질 옵션을 선택해주세요.", { status: 400 });
   }
 
+  const url = normalizeUrl(rawUrl);
   const platform = detectPlatform(url);
   let cleanup: (() => Promise<void>) | null = null;
 

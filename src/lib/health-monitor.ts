@@ -119,6 +119,75 @@ export async function runHealthCheck(): Promise<void> {
   for (const platform of Object.keys(TEST_URLS) as Platform[]) {
     await checkChannel(platform);
   }
+
+  await checkForUpdates();
+}
+
+// --- Update notifications (informational, not auto-applied) ---
+
+interface ComponentUpdate {
+  current: string;
+  latest: string;
+  outdated: boolean;
+}
+interface UpdateStatus {
+  ytdlp: ComponentUpdate;
+  bgutil: ComponentUpdate;
+  lastChecked: string | null;
+}
+
+const updateStatus: UpdateStatus = {
+  ytdlp: { current: "unknown", latest: "unknown", outdated: false },
+  bgutil: { current: process.env.BGUTIL_VERSION || "unknown", latest: "unknown", outdated: false },
+  lastChecked: null,
+};
+
+async function fetchLatestTag(repo: string): Promise<string> {
+  try {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 8000);
+    const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
+      headers: { "User-Agent": "ytdown-health", Accept: "application/vnd.github+json" },
+      signal: ac.signal,
+    });
+    clearTimeout(t);
+    if (!res.ok) return "unknown";
+    const data = (await res.json()) as { tag_name?: string };
+    return (data.tag_name || "unknown").replace(/^v/, "");
+  } catch {
+    return "unknown";
+  }
+}
+
+async function checkForUpdates(): Promise<void> {
+  const [ytdlpLatest, bgutilLatest] = await Promise.all([
+    fetchLatestTag("yt-dlp/yt-dlp"),
+    fetchLatestTag("Brainicism/bgutil-ytdlp-pot-provider"),
+  ]);
+
+  updateStatus.ytdlp = {
+    current: ytdlpVersion,
+    latest: ytdlpLatest,
+    outdated: ytdlpLatest !== "unknown" && ytdlpVersion !== "unknown" && ytdlpVersion !== ytdlpLatest,
+  };
+  const bgutilCurrent = process.env.BGUTIL_VERSION || "unknown";
+  updateStatus.bgutil = {
+    current: bgutilCurrent,
+    latest: bgutilLatest,
+    outdated: bgutilLatest !== "unknown" && bgutilCurrent !== "unknown" && bgutilCurrent !== bgutilLatest,
+  };
+  updateStatus.lastChecked = new Date().toISOString();
+
+  if (updateStatus.ytdlp.outdated) {
+    console.warn(`[health] yt-dlp update available: ${ytdlpVersion} -> ${ytdlpLatest}`);
+  }
+  if (updateStatus.bgutil.outdated) {
+    console.warn(`[health] bgutil update available: ${bgutilCurrent} -> ${bgutilLatest} (bump BGUTIL_VERSION in Dockerfile)`);
+  }
+}
+
+export function getUpdateStatus(): UpdateStatus {
+  return { ...updateStatus };
 }
 
 export function getChannelStatus(): Record<Platform, ChannelStatus> {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidUrl, detectPlatform } from "@/lib/validate";
+import { isValidUrl, detectPlatform, normalizeUrl } from "@/lib/validate";
 import { getVideoInfo } from "@/lib/ytdlp";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { executeWithHealing } from "@/lib/self-healing";
@@ -16,15 +16,16 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const url = request.nextUrl.searchParams.get("url");
+  const rawUrl = request.nextUrl.searchParams.get("url");
 
-  if (!url || !isValidUrl(url)) {
+  if (!rawUrl || !isValidUrl(rawUrl)) {
     return NextResponse.json(
       { error: "유효한 YouTube, Instagram 또는 TikTok URL을 입력해주세요." },
       { status: 400 }
     );
   }
 
+  const url = normalizeUrl(rawUrl);
   const platform = detectPlatform(url);
 
   const result = await executeWithHealing(

@@ -2,6 +2,7 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { Quality, getYtdlpArgs } from "./formats";
 import { Platform, detectPlatform } from "./validate";
+import { invalidatePotCache } from "./pot-provider";
 
 const execFileAsync = promisify(execFile);
 
@@ -134,10 +135,20 @@ export async function executeWithHealing<T>(
 
     // Bot detection on datacenter IPs. yt-dlp -U does NOT help.
     // 1) short backoff + plain retry (handles intermittent challenges)
-    // 2) retry with the bot-bypass player_client set (operationWithFallback),
+    // 2) drop stale POT tokens (invalidate cache) and retry
+    // 3) retry with the bot-bypass player_client set (operationWithFallback),
     //    which negotiates differently and often slips past the challenge.
     if (failureType === "bot_blocked") {
       await sleep(1500);
+      try {
+        const data = await operation();
+        return { success: true, data, healed: true };
+      } catch {
+        // fall through: regenerate POT token, then retry
+      }
+      // A stale/flagged Proof-of-Origin token is a common cause of a repeat
+      // challenge — force the provider to mint a fresh one and retry.
+      await invalidatePotCache();
       try {
         const data = await operation();
         return { success: true, data, healed: true };
